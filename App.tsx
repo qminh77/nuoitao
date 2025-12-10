@@ -15,7 +15,7 @@ const App: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText("https://buymeacoffee.com/nuoitoi.com");
+    navigator.clipboard.writeText("1057117021");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -215,21 +215,21 @@ const App: React.FC = () => {
             <span className="text-emerald-400">NẾU MÀY ĐANG CƯỜI!</span>
           </h2>
           <p className="text-slate-400 mb-10 text-lg max-w-2xl mx-auto">
-            Quét mã QR này để nuôi tao (và nhận bản sao kê ngay lập tức!) hoặc dùng link bên dưới.
+            Quét mã QR này để nuôi tao (và nhận bản sao kê ngay lập tức!) hoặc dùng số tài khoản bên dưới.
           </p>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-10">
-            {/* Fake QR */}
+            {/* Real QR */}
             <div className="bg-white p-4 rounded-2xl rotate-3 hover:rotate-0 transition-transform duration-300 shadow-xl">
               <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://buymeacoffee.com/nuoitoi.com" 
-                alt="QR Code Donation" 
-                className="w-48 h-48"
+                src="https://img.vietqr.io/image/VCB-1057117021-compact2.png?accountName=TRAN%20DANG%20KHOA" 
+                alt="QR Code Vietcombank" 
+                className="w-full max-w-[250px] h-auto rounded-lg"
               />
-              <p className="text-slate-900 font-bold mt-2 text-sm uppercase tracking-widest">Momo / Bank</p>
+              <p className="text-slate-900 font-bold mt-2 text-sm uppercase tracking-widest">TRAN DANG KHOA</p>
             </div>
 
-            <div className="text-left space-y-4">
+            <div className="text-left space-y-4 w-full md:w-auto">
                <div className="flex items-center gap-2 text-emerald-400 font-medium animate-pulse">
                  <Coffee size={20} />
                  <span>Chuyển xong là có mail tự động! ⚡</span>
@@ -239,18 +239,12 @@ const App: React.FC = () => {
                   onClick={copyToClipboard}
                   className="group relative w-full px-6 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl text-white font-mono flex items-center justify-between gap-4 transition-all"
                >
-                 <span className="truncate opacity-80">buymeacoffee.com/nuoitoi.com</span>
-                 {copied ? <CheckCircle size={20} className="text-green-400" /> : <span className="text-xs bg-slate-800 px-2 py-1 rounded">COPY</span>}
+                 <div className="flex flex-col items-start overflow-hidden">
+                    <span className="text-xs text-slate-400">Vietcombank</span>
+                    <span className="truncate opacity-90 font-bold text-lg">1057117021</span>
+                 </div>
+                 {copied ? <CheckCircle size={20} className="text-green-400 flex-shrink-0" /> : <span className="text-xs bg-slate-800 px-2 py-1 rounded flex-shrink-0">COPY</span>}
                </button>
-
-               <a 
-                 href="https://buymeacoffee.com/nuoitoi.com" 
-                 target="_blank" 
-                 rel="noreferrer"
-                 className="block w-full px-6 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold rounded-xl text-center shadow-lg shadow-yellow-900/20 transition-transform hover:-translate-y-1"
-               >
-                 🎁 NUÔI LUÔN, SỢ GÌ!
-               </a>
             </div>
           </div>
         </div>
