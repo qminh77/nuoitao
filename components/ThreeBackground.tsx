@@ -3,6 +3,21 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
+// Add type declarations for React Three Fiber elements to fix TypeScript errors
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      mesh: any;
+      icosahedronGeometry: any;
+      meshPhysicalMaterial: any;
+      torusGeometry: any;
+      ambientLight: any;
+      spotLight: any;
+      pointLight: any;
+    }
+  }
+}
+
 const Gem = (props: any) => {
   const meshRef = useRef<THREE.Mesh>(null);
   
