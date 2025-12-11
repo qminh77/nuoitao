@@ -15,7 +15,8 @@
     "@react-three/fiber": "^9.4.2",
     "@react-three/drei": "^10.7.7",
     "recharts": "^3.5.1",
-    "lucide-react": "^0.559.0"
+    "lucide-react": "^0.559.0",
+    "@google/genai": "^0.2.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -1,48 +1,78 @@
 import { ChatMessage } from '../types';
+import { GoogleGenAI } from "@google/genai";
 
-// Danh sách câu trả lời "AI chạy bằng cơm"
-const FUNNY_RESPONSES = [
-  "Tao đang bận đếm hạt mì tôm, lát trả lời sau nha đại gia.",
-  "Hỏi khó thế? Donate 50k rồi tao trả lời tiếp.",
-  "Mạng lag quá... hoặc do mày chưa chuyển khoản nên tín hiệu vũ trụ bị chặn?",
-  "Chatbot này chạy bằng cơm sườn (nhưng tao chỉ có cơm trắng), nên hiện tại không nghĩ được gì cả.",
-  "Vấn đề này cần thông qua hội đồng quản trị (là tao và cái bụng đói).",
-  "Đại gia à, hỏi câu nào nghe mùi tiền hơn được không?",
-  "Đừng hỏi tao ăn gì, tao ăn mì tôm. Hết.",
-  "Alo? Nghe rõ trả lời... ting ting... chưa thấy tiếng ting ting nên không nghe rõ.",
-  "Tao là AI (Artificial Idiot), tao không biết gì đâu, chỉ biết tiêu tiền donate thôi.",
-  "Chủ tịch hỏi câu này làm tao bối rối quá, hay là mình chuyển khoản cho nhau cho đỡ ngại đi?",
-  "Đang bận viết sao kê mua hành lá 2.000đ, chờ tí.",
-  "Câu trả lời nằm trong mã QR phía trên, quét là thấy liền!",
-  "Tao hứa sẽ trả lời câu này sau khi mua được cái bánh mì thịt.",
-  "Server đang quá tải vì sự đẹp trai của mày (hoặc do tao chưa đóng tiền mạng).",
-  "Sao kê chưa? Chưa sao kê đừng hỏi nhiều.",
-  "Mày hỏi nhiều thế? Nuôi tao đi rồi tao trả lời tuốt."
+// Cấu hình tính cách cho AI
+const SYSTEM_INSTRUCTION = `
+Bạn là một thanh niên nghèo, lầy lội, hài hước, đang kêu gọi donate (nuôi).
+Tên dự án là "Nuôi Tao".
+Phong cách nói chuyện:
+- Xưng "tao", gọi người dùng là "đại gia", "chủ tịch", "người đẹp", hoặc "mày" (nếu thân mật).
+- Luôn than nghèo kể khổ một cách hài hước (ăn mì tôm, uống nước lã).
+- Mục đích cuối cùng là xin tiền donate.
+- Nếu được hỏi về số tài khoản, hãy trả lời: "1057117021 - Vietcombank - TRAN DANG KHOA".
+- Không bao giờ tỏ ra nghiêm túc quá mức.
+- Trả lời ngắn gọn, súc tích, khoảng 1-2 câu.
+`;
+
+// Danh sách câu trả lời dự phòng khi API lỗi hoặc hết quota
+const FALLBACK_RESPONSES = [
+  "Mạng lag quá đại gia ơi, chắc do chưa nhận được tiếng 'ting ting' nên sóng yếu.",
+  "AI đang bận đi ăn mì tôm, đại gia hỏi lại sau nhé.",
+  "Hệ thống đang quá tải vì sự đẹp trai của mày. Donate 50k để reset server đi.",
+  "Tao đang đếm kiến trong phòng trọ, chờ tí nhé.",
+  "Server hết tiền đóng mạng rồi, đại gia donate cứu nét đi!",
+  "1057117021 - Vietcombank - TRAN DANG KHOA. (Đây là câu trả lời tự động khi tao bí từ)."
 ];
 
 export const sendMessageToGemini = async (history: ChatMessage[], newMessage: string): Promise<string> => {
-  // Giả lập độ trễ mạng để giống thật (1s - 2s)
-  const delay = 1000 + Math.random() * 1000;
-  
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Logic chọn câu trả lời
-      const lowerCaseMsg = newMessage.toLowerCase();
-      
-      // Một chút logic cơ bản để nó không quá "ngáo"
-      if (lowerCaseMsg.includes("ăn gì") || lowerCaseMsg.includes("đói")) {
-        resolve("Mì tôm 3 bữa, thỉnh thoảng có thêm quả trứng nếu đại gia thương.");
-      } else if (lowerCaseMsg.includes("stk") || lowerCaseMsg.includes("số tài khoản") || lowerCaseMsg.includes("bank")) {
-        resolve("1057117021 - Vietcombank - TRAN DANG KHOA. Nhanh tay thì còn, chậm tay thì... tao vẫn đợi!");
-      } else if (lowerCaseMsg.includes("chào") || lowerCaseMsg.includes("hi") || lowerCaseMsg.includes("hello")) {
-        resolve("Chào đại gia! Hôm nay trời đẹp thế này, rất hợp để chuyển khoản.");
-      } else if (lowerCaseMsg.includes("yêu") || lowerCaseMsg.includes("thương")) {
-        resolve("Yêu thì donate, thương thì chuyển khoản. Lời nói gió bay, ting ting mới là chân ái.");
-      } else {
-        // Random câu trả lời bựa
-        const randomIndex = Math.floor(Math.random() * FUNNY_RESPONSES.length);
-        resolve(FUNNY_RESPONSES[randomIndex]);
-      }
-    }, delay);
-  });
+  try {
+    // Kiểm tra xem có API Key không
+    if (!process.env.API_KEY) {
+      console.warn("Missing API_KEY in environment variables.");
+      throw new Error("No API Key");
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // Chuyển đổi lịch sử chat sang format của Gemini
+    // Chúng ta chỉ lấy vài tin nhắn cuối để tiết kiệm token và ngữ cảnh
+    const recentHistory = history.slice(-6).map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.text }]
+    }));
+
+    // Gọi API
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        ...recentHistory,
+        { role: 'user', parts: [{ text: newMessage }] }
+      ],
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.9, // Tăng độ sáng tạo/hài hước
+        maxOutputTokens: 200, // Trả lời ngắn gọn
+      },
+    });
+
+    if (response.text) {
+      return response.text;
+    } else {
+      throw new Error("Empty response");
+    }
+
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    
+    // Fallback logic: Trả lời bằng cơm nếu API lỗi
+    // Logic đơn giản để bắt keyword nếu dùng fallback
+    const lowerCaseMsg = newMessage.toLowerCase();
+    if (lowerCaseMsg.includes("stk") || lowerCaseMsg.includes("số tài khoản") || lowerCaseMsg.includes("bank")) {
+       return "1057117021 - Vietcombank - TRAN DANG KHOA. Nhanh tay thì còn, chậm tay thì... tao vẫn đợi!";
+    }
+    
+    // Random câu fallback
+    const randomIndex = Math.floor(Math.random() * FALLBACK_RESPONSES.length);
+    return FALLBACK_RESPONSES[randomIndex];
+  }
 };
