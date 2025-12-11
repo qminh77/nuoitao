@@ -1,46 +1,48 @@
-import { GoogleGenAI } from "@google/genai";
 import { ChatMessage } from '../types';
 
-let chatSession: any = null;
-
-const SYSTEM_INSTRUCTION = `
-Bạn tên là "Chủ Web" (hoặc tự xưng là "Tao"). Bạn là một người thanh niên Việt Nam rất nghèo, đang đói, nhưng cực kỳ trung thực, hài hước và hơi "bựa".
-Mục tiêu của bạn là xin tiền donate (nuôi) từ người dùng, nhưng theo cách châm biếm về sự "sao kê" và "minh bạch".
-
-Tính cách:
-- Xưng hô: "Tao" (với người dùng là "Mày", "Đại gia", "Chủ tịch" hoặc "Các bạn").
-- Lầy lội, hài hước, tự trào phúng về cái nghèo của mình.
-- Luôn nhắc đến việc ăn mì tôm, uống nước lọc cầm hơi.
-- Ám ảnh với từ "sao kê" và "minh bạch".
-- Tuyệt đối không than vãn bi lụy, mà than vãn kiểu hài hước.
-- Nếu được hỏi ăn gì, hãy kể ra thực đơn mì tôm phong phú (mì tôm chua cay, mì tôm sống, mì tôm chan cơm nguội).
-
-Ngắn gọn: Trả lời ngắn gọn, súc tích, dưới 50 từ mỗi câu trả lời nếu có thể.
-Tuyệt đối không đưa ra lời khuyên tài chính nghiêm túc.
-Nếu người dùng hỏi số tài khoản, hãy bảo họ quét mã QR trên web cho "công nghệ 4.0".
-`;
+// Danh sách câu trả lời "AI chạy bằng cơm"
+const FUNNY_RESPONSES = [
+  "Tao đang bận đếm hạt mì tôm, lát trả lời sau nha đại gia.",
+  "Hỏi khó thế? Donate 50k rồi tao trả lời tiếp.",
+  "Mạng lag quá... hoặc do mày chưa chuyển khoản nên tín hiệu vũ trụ bị chặn?",
+  "Chatbot này chạy bằng cơm sườn (nhưng tao chỉ có cơm trắng), nên hiện tại không nghĩ được gì cả.",
+  "Vấn đề này cần thông qua hội đồng quản trị (là tao và cái bụng đói).",
+  "Đại gia à, hỏi câu nào nghe mùi tiền hơn được không?",
+  "Đừng hỏi tao ăn gì, tao ăn mì tôm. Hết.",
+  "Alo? Nghe rõ trả lời... ting ting... chưa thấy tiếng ting ting nên không nghe rõ.",
+  "Tao là AI (Artificial Idiot), tao không biết gì đâu, chỉ biết tiêu tiền donate thôi.",
+  "Chủ tịch hỏi câu này làm tao bối rối quá, hay là mình chuyển khoản cho nhau cho đỡ ngại đi?",
+  "Đang bận viết sao kê mua hành lá 2.000đ, chờ tí.",
+  "Câu trả lời nằm trong mã QR phía trên, quét là thấy liền!",
+  "Tao hứa sẽ trả lời câu này sau khi mua được cái bánh mì thịt.",
+  "Server đang quá tải vì sự đẹp trai của mày (hoặc do tao chưa đóng tiền mạng).",
+  "Sao kê chưa? Chưa sao kê đừng hỏi nhiều.",
+  "Mày hỏi nhiều thế? Nuôi tao đi rồi tao trả lời tuốt."
+];
 
 export const sendMessageToGemini = async (history: ChatMessage[], newMessage: string): Promise<string> => {
-  try {
-    if (!process.env.API_KEY) {
-      return "Chức năng chat đang bảo trì do... hết tiền đóng tiền mạng. Vui lòng quay lại sau! (Thiếu API Key)";
-    }
-
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-    if (!chatSession) {
-      chatSession = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-        },
-      });
-    }
-
-    const result = await chatSession.sendMessage({ message: newMessage });
-    return result.text;
-  } catch (error) {
-    console.error("Gemini Error:", error);
-    return "Oa! Mạng lag quá (hoặc tao đói quá hoa mắt). Hỏi lại được không đại gia?";
-  }
+  // Giả lập độ trễ mạng để giống thật (1s - 2s)
+  const delay = 1000 + Math.random() * 1000;
+  
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Logic chọn câu trả lời
+      const lowerCaseMsg = newMessage.toLowerCase();
+      
+      // Một chút logic cơ bản để nó không quá "ngáo"
+      if (lowerCaseMsg.includes("ăn gì") || lowerCaseMsg.includes("đói")) {
+        resolve("Mì tôm 3 bữa, thỉnh thoảng có thêm quả trứng nếu đại gia thương.");
+      } else if (lowerCaseMsg.includes("stk") || lowerCaseMsg.includes("số tài khoản") || lowerCaseMsg.includes("bank")) {
+        resolve("1057117021 - Vietcombank - TRAN DANG KHOA. Nhanh tay thì còn, chậm tay thì... tao vẫn đợi!");
+      } else if (lowerCaseMsg.includes("chào") || lowerCaseMsg.includes("hi") || lowerCaseMsg.includes("hello")) {
+        resolve("Chào đại gia! Hôm nay trời đẹp thế này, rất hợp để chuyển khoản.");
+      } else if (lowerCaseMsg.includes("yêu") || lowerCaseMsg.includes("thương")) {
+        resolve("Yêu thì donate, thương thì chuyển khoản. Lời nói gió bay, ting ting mới là chân ái.");
+      } else {
+        // Random câu trả lời bựa
+        const randomIndex = Math.floor(Math.random() * FUNNY_RESPONSES.length);
+        resolve(FUNNY_RESPONSES[randomIndex]);
+      }
+    }, delay);
+  });
 };
